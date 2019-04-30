@@ -56,6 +56,7 @@ public:
     void setStateInformation (const void* data, int sizeInBytes) override;
     
     double getPhaseIncrement(double frequency);
+
 	float* gainParameterValue;
 	float* phaseBendParameterValue;
 
@@ -68,7 +69,9 @@ private:
     double phase, phaseIncrement;
     double currentFrequency;
     double distortAmount;
-    
+
+	
+	
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PDistortAudioProcessor)
 };

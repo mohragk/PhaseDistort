@@ -146,6 +146,60 @@ bool PDistortAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts)
 
 
 
+double getDistortedPhaseSaw(double phase, double skew, int factor = 1)
+{
+	double warpedPhase;
+	
+	double division = (double)factor;
+	if (division < 1.0)
+		division = 1.0;
+
+	double m1;
+	double m2;
+	double b2;
+
+
+	double x1 = skew / division;
+	double currentPhase = phase / division;
+
+
+	if (x1 <= 0)
+		x1 = 0.00001;
+
+
+	m1 = (0.5 / division) / x1;
+	m2 = (0.5 / division) / ((1.0 / division) - x1);
+	b2 = (1.0 / division) - (m2 / division);
+
+
+	if (currentPhase < x1)
+	{
+		warpedPhase = m1 * currentPhase;
+	}
+	else
+	{
+		warpedPhase = m2 * currentPhase + b2;
+	}
+
+	return warpedPhase;
+}
+
+double getDistortedPhaseSquare(double phase, double skew)
+{
+	double warpedPhase;
+	double currentPhase = phase;
+
+	if (currentPhase < 0.5)
+	{
+		warpedPhase = getDistortedPhaseSaw(currentPhase, skew, 2);
+	}
+	else
+	{
+		warpedPhase = getDistortedPhaseSaw(currentPhase - 0.5, skew, 2) + 0.5;
+	}
+
+	return warpedPhase;
+}
 
 void PDistortAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer& midiMessages)
 {
@@ -164,43 +218,20 @@ void PDistortAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffe
 
     
     int numSamples = buffer.getNumSamples();    
-    
+	double two_Pi = 2.0 * double_Pi;
     
     
     for (int i = 0; i < numSamples ; i++)
     {
-        double warpedPhase;
-        double m1;
-        double m2;
-        double b2;
-        
-        double x1 = *phaseBendParameterValue;
-        if (x1 <= 0)
-            x1 = 0.00001;
-        
-        
-        m1 = 0.5 / x1;
-        m2 = 0.5 / (1.0 - x1);
-        b2 = 1.0 - m2;
-        
-        
-        if (phase < x1)
-        {
-            warpedPhase = m1 * phase;
-        }
-        else
-        {
-            warpedPhase = m2 * phase + b2;
-        }
-        
-       
+		double warpedPhase = getDistortedPhaseSquare(phase, *phaseBendParameterValue);
+		double value = sin(two_Pi * warpedPhase);
         
         for (int channel = 0; channel < totalNumOutputChannels; ++channel)
         {
            
             auto* channelData = buffer.getWritePointer (channel);
 
-            channelData[i] = cos(2.0 * double_Pi * warpedPhase) * *gainParameterValue;
+            channelData[i] = value * *gainParameterValue;
         }
         
         
