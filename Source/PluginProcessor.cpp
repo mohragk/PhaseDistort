@@ -206,37 +206,21 @@ double getDistortedPhaseSquare(double phase, double skew)
 }
 
 
+
+
 double getTriangle(double phase)
 {
 	double val;
-	double phase_pi = phase * 2.0 * double_Pi;
+	double curPhase = phase - (int)phase;
 	double A = 1.0;
 
-	if (phase_pi < double_Pi)
+	if (curPhase < 0.5)
 	{
-		val = -A + (2 * A / double_Pi) * phase_pi;
+		val =  -A + (4 * A) * curPhase;
 	}
 	else
 	{
-		val = 3 * A - (2 * A / double_Pi) * phase_pi;
-	}
-
-	return val;
-}
-
-double getTriangleNormalized(double phase)
-{
-	double val;
-	double phase_pi = phase - (int)phase;
-	double A = 1.0;
-
-	if (phase_pi < 0.5)
-	{
-		val = -A + (4 * A) * phase_pi;
-	}
-	else
-	{
-		val = 3 * A - (4 * A) * phase_pi;
+		val = 3*A - (4 * A) * curPhase;
 	}
 
 	return val;
@@ -268,7 +252,8 @@ void PDistortAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffe
 		//double warpedPhase = getDistortedPhaseSquare(phase, *phaseBendParameterValue);
 		//double value = sin(two_Pi * warpedPhase);
 
-		double modulator = getTriangleNormalized(phase + 0.25) * *phaseBendParameterValue;
+		//double modulator = getTriangle(phase + 0.25) * *phaseBendParameterValue;
+		double modulator = sin(phase * two_Pi) * *phaseBendParameterValue;
 		double warpedPhase = phase + modulator;
         
         for (int channel = 0; channel < totalNumOutputChannels; ++channel)
