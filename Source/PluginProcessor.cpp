@@ -264,9 +264,6 @@ void PDistortAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffe
             channelData[i] = cos(warpedPhase * two_Pi) * *gainParameterValue;
         }
         
-        
-       
-        
         phase += getPhaseIncrement(110.0); // 110 hz
         
         while (phase >= 1.0)
