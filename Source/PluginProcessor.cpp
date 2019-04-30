@@ -189,17 +189,59 @@ double getDistortedPhaseSquare(double phase, double skew)
 	double warpedPhase;
 	double currentPhase = phase;
 
-	if (currentPhase < 0.5)
+	if (currentPhase <= 0.33)
 	{
-		warpedPhase = getDistortedPhaseSaw(currentPhase, skew, 2);
+		warpedPhase = getDistortedPhaseSaw(currentPhase, skew, 3);
+	}
+	else if (currentPhase <= 0.66)
+	{
+		warpedPhase = getDistortedPhaseSaw(currentPhase - 0.33, skew, 3) + 0.33;
 	}
 	else
 	{
-		warpedPhase = getDistortedPhaseSaw(currentPhase - 0.5, skew, 2) + 0.5;
+		warpedPhase = getDistortedPhaseSaw(currentPhase - 0.66, skew, 3) + 0.66;
 	}
 
 	return warpedPhase;
 }
+
+
+double getTriangle(double phase)
+{
+	double val;
+	double phase_pi = phase * 2.0 * double_Pi;
+	double A = 1.0;
+
+	if (phase_pi < double_Pi)
+	{
+		val = -A + (2 * A / double_Pi) * phase_pi;
+	}
+	else
+	{
+		val = 3 * A - (2 * A / double_Pi) * phase_pi;
+	}
+
+	return val;
+}
+
+double getTriangleNormalized(double phase)
+{
+	double val;
+	double phase_pi = phase - (int)phase;
+	double A = 1.0;
+
+	if (phase_pi < 0.5)
+	{
+		val = -A + (4 * A) * phase_pi;
+	}
+	else
+	{
+		val = 3 * A - (4 * A) * phase_pi;
+	}
+
+	return val;
+}
+
 
 void PDistortAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer& midiMessages)
 {
@@ -223,15 +265,18 @@ void PDistortAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffe
     
     for (int i = 0; i < numSamples ; i++)
     {
-		double warpedPhase = getDistortedPhaseSquare(phase, *phaseBendParameterValue);
-		double value = sin(two_Pi * warpedPhase);
+		//double warpedPhase = getDistortedPhaseSquare(phase, *phaseBendParameterValue);
+		//double value = sin(two_Pi * warpedPhase);
+
+		double modulator = getTriangleNormalized(phase + 0.25) * *phaseBendParameterValue;
+		double warpedPhase = phase + modulator;
         
         for (int channel = 0; channel < totalNumOutputChannels; ++channel)
         {
            
             auto* channelData = buffer.getWritePointer (channel);
 
-            channelData[i] = value * *gainParameterValue;
+            channelData[i] = cos(warpedPhase * two_Pi) * *gainParameterValue;
         }
         
         
