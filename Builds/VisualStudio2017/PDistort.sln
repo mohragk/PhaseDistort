@@ -1,0 +1,38 @@
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2017
+
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PDistort - Standalone Plugin", "PDistort_StandalonePlugin.vcxproj", "{BCDA0133-6578-51B0-BB73-ABD2F870E9C1}"
+	ProjectSection(ProjectDependencies) = postProject
+		{D9AD9592-A0A5-3C49-9833-D8BD9C9DEAE5} = {D9AD9592-A0A5-3C49-9833-D8BD9C9DEAE5}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PDistort - VST3", "PDistort_VST3.vcxproj", "{455380D8-048D-F7B2-8936-A9D370FE2E71}"
+	ProjectSection(ProjectDependencies) = postProject
+		{D9AD9592-A0A5-3C49-9833-D8BD9C9DEAE5} = {D9AD9592-A0A5-3C49-9833-D8BD9C9DEAE5}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PDistort - Shared Code", "PDistort_SharedCode.vcxproj", "{D9AD9592-A0A5-3C49-9833-D8BD9C9DEAE5}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{455380D8-048D-F7B2-8936-A9D370FE2E71}.Debug|x64.ActiveCfg = Debug|x64
+		{455380D8-048D-F7B2-8936-A9D370FE2E71}.Debug|x64.Build.0 = Debug|x64
+		{455380D8-048D-F7B2-8936-A9D370FE2E71}.Release|x64.ActiveCfg = Release|x64
+		{455380D8-048D-F7B2-8936-A9D370FE2E71}.Release|x64.Build.0 = Release|x64
+		{BCDA0133-6578-51B0-BB73-ABD2F870E9C1}.Debug|x64.ActiveCfg = Debug|x64
+		{BCDA0133-6578-51B0-BB73-ABD2F870E9C1}.Debug|x64.Build.0 = Debug|x64
+		{BCDA0133-6578-51B0-BB73-ABD2F870E9C1}.Release|x64.ActiveCfg = Release|x64
+		{BCDA0133-6578-51B0-BB73-ABD2F870E9C1}.Release|x64.Build.0 = Release|x64
+		{D9AD9592-A0A5-3C49-9833-D8BD9C9DEAE5}.Debug|x64.ActiveCfg = Debug|x64
+		{D9AD9592-A0A5-3C49-9833-D8BD9C9DEAE5}.Debug|x64.Build.0 = Debug|x64
+		{D9AD9592-A0A5-3C49-9833-D8BD9C9DEAE5}.Release|x64.ActiveCfg = Release|x64
+		{D9AD9592-A0A5-3C49-9833-D8BD9C9DEAE5}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
