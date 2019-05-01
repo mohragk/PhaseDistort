@@ -218,7 +218,8 @@ inline double getTriangle(double phase)
 
 double getPhaseTriangle(double phase, double skew)
 {
-    double modulator = getTriangle(phase) * skew;
+    double phaseShift = 0.25;
+    double modulator = getTriangle(phase + phaseShift) * skew;
     double warpedPhase = phase + modulator;
     return warpedPhase;
 }
