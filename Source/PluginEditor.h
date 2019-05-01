@@ -31,13 +31,16 @@ private:
 	AudioProcessorValueTreeState& valueTreeState;
 
 	typedef AudioProcessorValueTreeState::SliderAttachment SliderAttachment;
-	//typedef AudioProcessorValueTreeState::ButtonAttachment ButtonAttachment;
+	typedef AudioProcessorValueTreeState::ButtonAttachment ButtonAttachment;
 
 	Slider gainSlider;
 	std::unique_ptr<SliderAttachment> gainAttachment;
 
 	Slider phaseBendSlider;
 	std::unique_ptr<SliderAttachment> phaseBendAttachment;
+    
+    Slider phaseTypeSlider;
+    std::unique_ptr<SliderAttachment> phaseTypeAttachment;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PDistortAudioProcessorEditor)
 };

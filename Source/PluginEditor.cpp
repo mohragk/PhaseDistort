@@ -20,10 +20,14 @@ PDistortAudioProcessorEditor::PDistortAudioProcessorEditor (PDistortAudioProcess
 
 	addAndMakeVisible(phaseBendSlider);
 	phaseBendAttachment.reset(new SliderAttachment(valueTreeState, "phaseBend", phaseBendSlider));
+    
+    addAndMakeVisible(phaseTypeSlider);
+    phaseTypeAttachment.reset(new SliderAttachment(valueTreeState, "type", phaseTypeSlider));
 
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
     setSize (400, 300);
+    
 }
 
 PDistortAudioProcessorEditor::~PDistortAudioProcessorEditor()
@@ -45,5 +49,6 @@ void PDistortAudioProcessorEditor::resized()
 	Rectangle<int> layout (getLocalBounds());
 	gainSlider.setBounds(layout.removeFromTop(height));
 	phaseBendSlider.setBounds(layout.removeFromTop(height));
+    phaseTypeSlider.setBounds(layout.removeFromTop(height));
 
 }

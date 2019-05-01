@@ -11,6 +11,15 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
+enum DistortionType {
+    SINE,
+    TRIANGLE,
+    SKEW,
+    numTypes
+};
+
+#define two_Pi (2.0 * double_Pi)
+
 //==============================================================================
 PDistortAudioProcessor::PDistortAudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
@@ -26,7 +35,7 @@ PDistortAudioProcessor::PDistortAudioProcessor()
 		{
 			std::make_unique<AudioParameterFloat> ("gain", "Gain", 0.0, 1.0, 0.15),
 			std::make_unique<AudioParameterFloat>("phaseBend", "Phase Bend", 0.0, 1.0, 0.5),
-
+            std::make_unique<AudioParameterInt>("type", "Distortion Type", 0, numTypes, 0)
 		}
 	)
 
@@ -146,7 +155,7 @@ bool PDistortAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts)
 
 
 
-double getDistortedPhaseSaw(double phase, double skew, int factor = 1)
+inline double getPhaseSaw(double phase, double skew, int factor = 1)
 {
 	double warpedPhase;
 	
@@ -184,31 +193,12 @@ double getDistortedPhaseSaw(double phase, double skew, int factor = 1)
 	return warpedPhase;
 }
 
-double getDistortedPhaseSquare(double phase, double skew)
-{
-	double warpedPhase;
-	double currentPhase = phase;
-
-	if (currentPhase <= 0.33)
-	{
-		warpedPhase = getDistortedPhaseSaw(currentPhase, skew, 3);
-	}
-	else if (currentPhase <= 0.66)
-	{
-		warpedPhase = getDistortedPhaseSaw(currentPhase - 0.33, skew, 3) + 0.33;
-	}
-	else
-	{
-		warpedPhase = getDistortedPhaseSaw(currentPhase - 0.66, skew, 3) + 0.66;
-	}
-
-	return warpedPhase;
-}
 
 
 
 
-double getTriangle(double phase)
+
+inline double getTriangle(double phase)
 {
 	double val;
 	double curPhase = phase - (int)phase;
@@ -224,6 +214,20 @@ double getTriangle(double phase)
 	}
 
 	return val;
+}
+
+double getPhaseTriangle(double phase, double skew)
+{
+    double modulator = getTriangle(phase) * skew;
+    double warpedPhase = phase + modulator;
+    return warpedPhase;
+}
+
+double getPhaseSine(double phase, double skew)
+{
+    double modulator = sin(phase * two_Pi) * skew;
+    double warpedPhase = phase + modulator;
+    return warpedPhase;
 }
 
 
@@ -244,18 +248,35 @@ void PDistortAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffe
 
     
     int numSamples = buffer.getNumSamples();    
-	double two_Pi = 2.0 * double_Pi;
+    
+    DistortionType type = SINE;
+    type = (DistortionType) *parameters.getRawParameterValue("type");
+    double warpedPhase;
     
     
     for (int i = 0; i < numSamples ; i++)
     {
-		//double warpedPhase = getDistortedPhaseSquare(phase, *phaseBendParameterValue);
-		//double value = sin(two_Pi * warpedPhase);
-
-		//double modulator = getTriangle(phase + 0.25) * *phaseBendParameterValue;
-		double modulator = sin(phase * two_Pi) * *phaseBendParameterValue;
-		double warpedPhase = phase + modulator;
+		
+        switch (type) {
+            case SINE: {
+                warpedPhase = getPhaseSine(phase, *phaseBendParameterValue);
+                
+                break;
+            }
+            case TRIANGLE: {
+                warpedPhase = getPhaseTriangle(phase, *phaseBendParameterValue);
+                break;
+            }
+            case SKEW: {
+                warpedPhase = getPhaseSaw(phase, *phaseBendParameterValue);
+                break;
+            }
+            default:
+                break;
+                
+        }
         
+		
         for (int channel = 0; channel < totalNumOutputChannels; ++channel)
         {
            
