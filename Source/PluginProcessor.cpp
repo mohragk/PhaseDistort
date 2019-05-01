@@ -194,7 +194,30 @@ inline double getPhaseSaw(double phase, double skew, int factor = 1)
 }
 
 
+//UNTESTED!!!
+inline double getTriangleSkewed(double phase, double skew) 
+{
+	double warpedPhase;
+    
+    double x = skew;
+    double A = 0.25;
+    double m1 = A / x;
+    double m2 = -(A / (0.5 - x));
 
+    if (phase < x)
+    {
+        warpedPhase = m1 * phase;
+    } else if (phase < (1.0 - x))
+    {
+        warpedPhase = A + m2 * phase;
+    }
+    else
+    {
+        warpedPhase = -A + m1 * phase;
+    }
+    
+    return warpedPhase;
+}
 
 
 
