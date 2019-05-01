@@ -63,7 +63,7 @@ public:
 private:
     //=============================================================================
 	AudioProcessorValueTreeState parameters;
-    double sampleRate;
+    double curSampleRate;
     int numSamples;
     
     double phase, phaseIncrement;
