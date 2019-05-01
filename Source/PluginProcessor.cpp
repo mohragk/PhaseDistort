@@ -11,11 +11,10 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
-enum DistortionType {
+enum WaveformType {
     SINE,
-    TRIANGLE,
-	SKEW_TRIANGLE,
-    SKEW,
+    SAW,
+	SQUARE,
     numTypes
 };
 
@@ -156,7 +155,7 @@ bool PDistortAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts)
 
 
 
-inline double getPhaseSaw(double phase, double skew, int factor = 1)
+inline double getModulatorSkew(double phase, double skew, int factor = 1)
 {
 	double warpedPhase;
 	
@@ -195,76 +194,68 @@ inline double getPhaseSaw(double phase, double skew, int factor = 1)
 }
 
 
-//UNTESTED!!!
-inline double getTriangleSkewed(double phase, double skew) 
+double getSaw(double phase, double skew)
+{
+	return cos(two_Pi * getModulatorSkew(phase, skew));
+}
+
+
+double getModulatorTriangle(double phase, double skew)
+{
+	double val;
+	double curPhase = phase - (int)phase;
+	double A = skew;
+
+	if (curPhase < 0.5)
+	{
+		val =    (4.0 * A) * curPhase - A;
+	}
+	else
+	{
+		val =  - (4.0 * A) * curPhase + (3.0 * A);
+	}
+
+	return val;
+}
+
+
+//UNUSED
+inline double getModulatorTriangleSkewed(double phase, double skew)
 {
 	double warpedPhase;
 	double curPhase = phase - (int)phase;
-	
+
 	double x = skew;
-	double A = 0.15;
+	double A = 0.5 - x;
 
 	double m1 = A / x;
 	double m2 = A / (0.5 - x);
-    
+
 	if (curPhase < x)
 	{
 		warpedPhase = m1 * curPhase;
 	}
 	else if (curPhase < (1.0 - x))
 	{
-		warpedPhase = -m2 * curPhase + ( (0.5 * A) / (0.5 - x) );
+		warpedPhase = -m2 * curPhase + ((0.5 * A) / (0.5 - x));
 	}
 	else
 	{
 		warpedPhase = m1 * curPhase - (A / x);
 	}
 
-    return warpedPhase;
-}
-
-
-
-inline double getTriangle(double phase)
-{
-	double val;
-	double curPhase = phase - (int)phase;
-	double A = 1.0;
-
-	if (curPhase < 0.5)
-	{
-		val =  -A + (4 * A) * curPhase;
-	}
-	else
-	{
-		val = 3*A - (4 * A) * curPhase;
-	}
-
-	return val;
-}
-
-double getPhaseTriangle(double phase, double skew)
-{
-    double phaseShift = 0.25;
-    double modulator = getTriangle(phase + phaseShift) * skew;
-    double warpedPhase = phase + modulator;
-    return warpedPhase;
-}
-
-double getPhaseTriangleSkewed(double phase, double skew)
-{
-	double modulator = getTriangleSkewed(phase, skew);
-	double warpedPhase = phase + modulator;
 	return warpedPhase;
 }
 
-double getPhaseSine(double phase, double skew)
-{
-    double modulator = sin(phase * two_Pi) * skew;
-    double warpedPhase = phase + modulator;
-    return warpedPhase;
-}
 
+
+double getSquare(double phase, double skew)
+{
+	double modulator = getModulatorTriangleSkewed(2.0 * phase + 0.25, skew);
+	double warpedPhase = phase + modulator;
+	double val = sin(warpedPhase * two_Pi);
+	return val;
+}
 
 void PDistortAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer& midiMessages)
 {
@@ -284,31 +275,29 @@ void PDistortAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffe
     
     int numSamples = buffer.getNumSamples();    
     
-    DistortionType type = SINE;
+    WaveformType type = SINE;
 	int int_type = (int)*parameters.getRawParameterValue("type");
-    type = (DistortionType) int_type;
-    double warpedPhase;
+    type = (WaveformType) int_type;
+    double currentSample = 0.0;
     
     
     for (int i = 0; i < numSamples ; i++)
     {
 		
-        switch (type) {
+        switch (type) 
+		{
             case SINE: {
-                warpedPhase = getPhaseSine(phase, *phaseBendParameterValue);
+				currentSample = sin(phase * two_Pi);
                 
                 break;
             }
-            case TRIANGLE: {
-                warpedPhase = getPhaseTriangle(phase, *phaseBendParameterValue);
+            case SAW: {
+				currentSample = getSaw(phase, *phaseBendParameterValue);
                 break;
             }
-			case SKEW_TRIANGLE: {
-				warpedPhase = getPhaseTriangleSkewed(phase, *phaseBendParameterValue);
-				break;
-			}
-            case SKEW: {
-                warpedPhase = getPhaseSaw(phase, *phaseBendParameterValue);
+			
+            case SQUARE: {
+				currentSample = getSquare(phase, *phaseBendParameterValue);
                 break;
             }
             default:
@@ -316,16 +305,14 @@ void PDistortAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffe
                 
         }
         
-		//TEST TEST
-		double val = getTriangle(phase) * *gainParameterValue;
+		currentSample *= *gainParameterValue;
 		
         for (int channel = 0; channel < totalNumOutputChannels; ++channel)
         {
            
             auto* channelData = buffer.getWritePointer (channel);
 
-            //channelData[i] = cos(warpedPhase * two_Pi) * *gainParameterValue;
-			channelData[channel] = val;
+            channelData[i] = currentSample;
         }
         
         phase += getPhaseIncrement(110.0); // 110 hz
