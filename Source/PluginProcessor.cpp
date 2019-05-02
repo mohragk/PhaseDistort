@@ -155,7 +155,7 @@ bool PDistortAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts)
 
 
 
-inline double getModulatorSkew(double phase, double skew, int factor = 1)
+inline double getPhaseSkewed(double phase, double skew, int factor = 1)
 {
 	double warpedPhase;
 	
@@ -194,11 +194,14 @@ inline double getModulatorSkew(double phase, double skew, int factor = 1)
 }
 
 
+
+
+
+
 double getSaw(double phase, double skew)
 {
-	return cos(two_Pi * getModulatorSkew(phase, skew));
+	return cos(two_Pi * getPhaseSkewed(phase, skew));
 }
-
 
 double getModulatorTriangle(double phase, double skew)
 {
@@ -219,42 +222,16 @@ double getModulatorTriangle(double phase, double skew)
 }
 
 
-//UNUSED
-inline double getModulatorTriangleSkewed(double phase, double skew)
-{
-	double warpedPhase;
-	double curPhase = phase - (int)phase;
-
-	double x = skew;
-	double A = 0.5 - x;
-
-	double m1 = A / x;
-	double m2 = A / (0.5 - x);
-
-	if (curPhase < x)
-	{
-		warpedPhase = m1 * curPhase;
-	}
-	else if (curPhase < (1.0 - x))
-	{
-		warpedPhase = -m2 * curPhase + ((0.5 * A) / (0.5 - x));
-	}
-	else
-	{
-		warpedPhase = m1 * curPhase - (A / x);
-	}
-
-	return warpedPhase;
-}
-
 
 
 double getSquare(double phase, double skew)
 {
-	double modulator = getModulatorTriangleSkewed(2.0 * phase + 0.25, skew);
+	
+
+	double modulator = getModulatorTriangle(1.5 * phase + 0.25, 1.0) * skew;
 	double warpedPhase = phase + modulator;
-	double val = sin(warpedPhase * two_Pi);
-	return val;
+	
+	return sin(warpedPhase * two_Pi);
 }
 
 void PDistortAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer& midiMessages)
