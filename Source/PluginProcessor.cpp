@@ -15,6 +15,7 @@ enum WaveformType {
     SINE,
     SAW,
 	SQUARE,
+    FANCY_SQUARE,
     numTypes
 };
 
@@ -153,7 +154,8 @@ bool PDistortAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts)
 }
 #endif
 
-
+dsp::LookupTableTransform<double> sinLUT { [](double x) { return sin(x); }, 0.0, two_Pi, 256 };
+dsp::LookupTableTransform<double> cosLUT { [](double x) { return cos(x); }, 0.0, two_Pi, 256 };
 
 inline double getPhaseSkewed(double phase, double skew)
 {
@@ -193,7 +195,7 @@ inline double getPhaseSkewed(double phase, double skew)
 
 double getSaw(double phase, double skew)
 {
-	return cos(two_Pi * getPhaseSkewed(phase, skew));
+	return cosLUT(two_Pi * getPhaseSkewed(phase, skew));
 }
 
 
@@ -209,7 +211,38 @@ double getSquare(double phase, double skew)
 	}
 
 
-	return cos(warpedPhase * two_Pi);
+	return cosLUT(warpedPhase * two_Pi);
+}
+
+
+double getPhaseSkewedForSteps(double phase, double skew, int numSteps)
+{
+    double warpedPhase;
+    double fract = 1.0 / (double) numSteps;
+    
+    int step = (int)(phase / fract);
+    
+    
+    
+    
+    if (step % 2 == 0)
+        warpedPhase = getPhaseSkewed(phase * numSteps, 1.0 - skew) * fract;
+    else
+        warpedPhase = getPhaseSkewed(phase * numSteps, skew ) * fract;
+    
+    warpedPhase += (fract * step);
+
+    return warpedPhase;
+}
+
+double getFancySquare(double phase, double skew)
+{
+    double warpedPhase;
+    
+    int numSteps = 4;
+    warpedPhase = getPhaseSkewedForSteps(phase, skew, numSteps);
+    
+    return cosLUT(warpedPhase * two_Pi);
 }
 
 
@@ -264,7 +297,7 @@ void PDistortAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffe
         switch (type) 
 		{
             case SINE: {
-				currentSample = sin(phase * two_Pi);
+				currentSample = sinLUT(phase * two_Pi);
                 
                 break;
             }
@@ -275,6 +308,10 @@ void PDistortAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffe
 			
             case SQUARE: {
 				currentSample = getSquare(phase, *phaseBendParameterValue);
+                break;
+            }
+            case FANCY_SQUARE: {
+                currentSample = getFancySquare(phase, *phaseBendParameterValue);
                 break;
             }
             default:

@@ -60,6 +60,8 @@ public:
 	float* gainParameterValue;
 	float* phaseBendParameterValue;
 
+    
+    
 private:
     //=============================================================================
 	AudioProcessorValueTreeState parameters;
@@ -70,7 +72,8 @@ private:
     double currentFrequency;
     double distortAmount;
 
-	
+    
+    
 	
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PDistortAudioProcessor)
