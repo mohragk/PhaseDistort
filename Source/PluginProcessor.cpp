@@ -155,30 +155,27 @@ bool PDistortAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts)
 
 
 
-inline double getPhaseSkewed(double phase, double skew, int factor = 1)
+inline double getPhaseSkewed(double phase, double skew)
 {
 	double warpedPhase;
 	
-	double division = (double)factor;
-	if (division < 1.0)
-		division = 1.0;
 
 	double m1;
 	double m2;
 	double b2;
 
 
-	double x1 = skew / division;
-	double currentPhase = phase / division;
+	double x1 = skew;
+	double currentPhase = phase - (int)phase;
 
 
 	if (x1 <= 0)
 		x1 = 0.00001;
 
 
-	m1 = (0.5 / division) / x1;
-	m2 = (0.5 / division) / ((1.0 / division) - x1);
-	b2 = (1.0 / division) - (m2 / division);
+	m1 = 0.5 / x1;
+	m2 = 0.5 / (1.0  - x1);
+	b2 = 1.0 - m2;
 
 
 	if (currentPhase < x1)
@@ -226,12 +223,13 @@ double getModulatorTriangle(double phase, double skew)
 
 double getSquare(double phase, double skew)
 {
-	
+	double warpedPhase;
 
-	double modulator = getModulatorTriangle(1.5 * phase + 0.25, 1.0) * skew;
-	double warpedPhase = phase + modulator;
-	
-	return sin(warpedPhase * two_Pi);
+	warpedPhase = getPhaseSkewed(2.0 * phase, skew) * 0.5;
+
+	if (phase > 0.5) warpedPhase = warpedPhase + 0.5;
+
+	return cos(warpedPhase * two_Pi);
 }
 
 void PDistortAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer& midiMessages)
