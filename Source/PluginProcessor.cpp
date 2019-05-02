@@ -191,14 +191,27 @@ inline double getPhaseSkewed(double phase, double skew)
 }
 
 
-
-
-
-
 double getSaw(double phase, double skew)
 {
 	return cos(two_Pi * getPhaseSkewed(phase, skew));
 }
+
+
+double getSquare(double phase, double skew)
+{
+	double warpedPhase;
+
+	warpedPhase = getPhaseSkewed(2.0 * phase, skew) * 0.5;
+
+	if (phase > 0.5)
+	{
+		warpedPhase += 0.5;
+	}
+
+
+	return cos(warpedPhase * two_Pi);
+}
+
 
 double getModulatorTriangle(double phase, double skew)
 {
@@ -220,17 +233,6 @@ double getModulatorTriangle(double phase, double skew)
 
 
 
-
-double getSquare(double phase, double skew)
-{
-	double warpedPhase;
-
-	warpedPhase = getPhaseSkewed(2.0 * phase, skew) * 0.5;
-
-	if (phase > 0.5) warpedPhase = warpedPhase + 0.5;
-
-	return cos(warpedPhase * two_Pi);
-}
 
 void PDistortAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer& midiMessages)
 {
