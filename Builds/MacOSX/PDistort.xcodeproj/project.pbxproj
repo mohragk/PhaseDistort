@@ -77,6 +77,10 @@
 			isa = PBXBuildFile;
 			fileRef = 5BD9341CE35AB8DAF8BAB8E4;
 		};
+		86EC600B44A29FF3FF2F33F8 = {
+			isa = PBXBuildFile;
+			fileRef = 0A2CB5D7AA41EEBBC59E7404;
+		};
 		B859D859269E260BBE487979 = {
 			isa = PBXBuildFile;
 			fileRef = AE54C06E36DA3D4AFF002955;
@@ -167,6 +171,13 @@
 			name = Accelerate.framework;
 			path = System/Library/Frameworks/Accelerate.framework;
 			sourceTree = SDKROOT;
+		};
+		0A2CB5D7AA41EEBBC59E7404 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.cpp.cpp;
+			name = ADSR.cpp;
+			path = ../../Source/ADSR/ADSR.cpp;
+			sourceTree = "SOURCE_ROOT";
 		};
 		109C8A8015F6053A353E8635 = {
 			isa = PBXFileReference;
@@ -272,6 +283,13 @@
 			name = AVKit.framework;
 			path = System/Library/Frameworks/AVKit.framework;
 			sourceTree = SDKROOT;
+		};
+		49B4AB0496EAE2BDF6053748 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = ADSR.h;
+			path = ../../Source/ADSR/ADSR.h;
+			sourceTree = "SOURCE_ROOT";
 		};
 		4AFF4CFF296931871F4FE373 = {
 			isa = PBXFileReference;
@@ -462,6 +480,13 @@
 			path = ../../Source/PluginProcessor.h;
 			sourceTree = "SOURCE_ROOT";
 		};
+		BBBE061E0A0AD5C77097B7A3 = {
+			isa = PBXFileReference;
+			lastKnownFileType = file;
+			name = "juce_audio_formats";
+			path = "/Applications/JUCE/modules/juce_audio_formats";
+			sourceTree = "<absolute>";
+		};
 		BBC8D593D3991B61E6F74C41 = {
 			isa = PBXFileReference;
 			lastKnownFileType = wrapper.framework;
@@ -469,12 +494,40 @@
 			path = System/Library/Frameworks/WebKit.framework;
 			sourceTree = SDKROOT;
 		};
+		BCAA11BBABECD087C0DC5805 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = AppConfig.h;
+			path = ../../JuceLibraryCode/AppConfig.h;
+			sourceTree = "SOURCE_ROOT";
+		};
 		BDB7CE070F54E0BA368EE326 = {
 			isa = PBXFileReference;
 			lastKnownFileType = wrapper.framework;
 			name = AVFoundation.framework;
 			path = System/Library/Frameworks/AVFoundation.framework;
 			sourceTree = SDKROOT;
+		};
+		C307E9969A2BA8348F225706 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.cpp.objcpp;
+			name = "include_juce_graphics.mm";
+			path = "../../JuceLibraryCode/include_juce_graphics.mm";
+			sourceTree = "SOURCE_ROOT";
+		};
+		CF48FE7FAD14ABD700E0BF65 = {
+			isa = PBXFileReference;
+			lastKnownFileType = file;
+			name = "juce_audio_utils";
+			path = "/Applications/JUCE/modules/juce_audio_utils";
+			sourceTree = "<absolute>";
+		};
+		E06B3F46F2C3B7BADAFCC48F = {
+			isa = PBXFileReference;
+			lastKnownFileType = file;
+			name = "juce_data_structures";
+			path = "/Applications/JUCE/modules/juce_data_structures";
+			sourceTree = "<absolute>";
 		};
 		F7C84F9BE976299D0FFFC77C = {
 			isa = PBXFileReference;
@@ -490,47 +543,12 @@
 			path = libPDistort.a;
 			sourceTree = "BUILT_PRODUCTS_DIR";
 		};
-		BBBE061E0A0AD5C77097B7A3 = {
-			isa = PBXFileReference;
-			lastKnownFileType = file;
-			name = "juce_audio_formats";
-			path = "/Applications/JUCE/modules/juce_audio_formats";
-			sourceTree = "<absolute>";
-		};
-		BCAA11BBABECD087C0DC5805 = {
-			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.c.h;
-			name = AppConfig.h;
-			path = ../../JuceLibraryCode/AppConfig.h;
-			sourceTree = "SOURCE_ROOT";
-		};
-		C307E9969A2BA8348F225706 = {
-			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.cpp.objcpp;
-			name = "include_juce_graphics.mm";
-			path = "../../JuceLibraryCode/include_juce_graphics.mm";
-			sourceTree = "SOURCE_ROOT";
-		};
 		C77496B57EDD521C4E798104 = {
 			isa = PBXFileReference;
 			lastKnownFileType = wrapper.framework;
 			name = CoreMIDI.framework;
 			path = System/Library/Frameworks/CoreMIDI.framework;
 			sourceTree = SDKROOT;
-		};
-		CF48FE7FAD14ABD700E0BF65 = {
-			isa = PBXFileReference;
-			lastKnownFileType = file;
-			name = "juce_audio_utils";
-			path = "/Applications/JUCE/modules/juce_audio_utils";
-			sourceTree = "<absolute>";
-		};
-		E06B3F46F2C3B7BADAFCC48F = {
-			isa = PBXFileReference;
-			lastKnownFileType = file;
-			name = "juce_data_structures";
-			path = "/Applications/JUCE/modules/juce_data_structures";
-			sourceTree = "<absolute>";
 		};
 		E2F60C2169E9A562AB348D48 = {
 			isa = PBXFileReference;
@@ -595,6 +613,15 @@
 			path = System/Library/Frameworks/AudioToolbox.framework;
 			sourceTree = SDKROOT;
 		};
+		34FBF4A120FBBE914A768912 = {
+			isa = PBXGroup;
+			children = (
+				0A2CB5D7AA41EEBBC59E7404,
+				49B4AB0496EAE2BDF6053748,
+			);
+			name = ADSR;
+			sourceTree = "<group>";
+		};
 		5A3827B49012A1197575322E = {
 			isa = PBXGroup;
 			children = (
@@ -609,6 +636,7 @@
 		58E2E31D1305E0F186A09439 = {
 			isa = PBXGroup;
 			children = (
+				34FBF4A120FBBE914A768912,
 				5A3827B49012A1197575322E,
 			);
 			name = PDistort;
@@ -1291,6 +1319,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				86EC600B44A29FF3FF2F33F8,
 				B859D859269E260BBE487979,
 				AB8F578399D09C57104ACF03,
 				F72ADFF7C1AFDFB1E97334C1,

@@ -7,6 +7,10 @@
               cppLanguageStandard="latest" companyName="Vermeer inc." companyCopyright="Vermeer"
               pluginFormats="buildStandalone,buildVST3">
   <MAINGROUP id="CHFXqn" name="PDistort">
+    <GROUP id="{0FBC0B23-0AA4-D868-E92E-BE57BB0F3518}" name="ADSR">
+      <FILE id="IILC94" name="ADSR.cpp" compile="1" resource="0" file="Source/ADSR/ADSR.cpp"/>
+      <FILE id="HBZWB1" name="ADSR.h" compile="0" resource="0" file="Source/ADSR/ADSR.h"/>
+    </GROUP>
     <GROUP id="{051247E8-CA2B-EAE3-74C0-92EE1D45DE6B}" name="Source">
       <FILE id="zfYt1u" name="PluginProcessor.cpp" compile="1" resource="0"
             file="Source/PluginProcessor.cpp"/>

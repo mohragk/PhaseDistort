@@ -36,7 +36,8 @@ PDistortAudioProcessor::PDistortAudioProcessor()
 		{
 			std::make_unique<AudioParameterFloat> ("gain", "Gain", 0.0, 1.0, 0.15),
 			std::make_unique<AudioParameterFloat>("phaseBend", "Phase Bend", 0.0, 1.0, 0.5),
-            std::make_unique<AudioParameterInt>("type", "Distortion Type", 0, numTypes, 0)
+            std::make_unique<AudioParameterInt>("type", "Distortion Type", 0, numTypes, 0),
+            std::make_unique<AudioParameterBool>("trigger", "Trigger EG", false)
 		}
 	)
 
@@ -44,6 +45,8 @@ PDistortAudioProcessor::PDistortAudioProcessor()
 {
 	gainParameterValue = parameters.getRawParameterValue("gain");
 	phaseBendParameterValue = parameters.getRawParameterValue("phaseBend");
+	
+	envelopeGenerator.reset( new EnvelopeGenerator() );
 
 }
 
@@ -119,7 +122,7 @@ void PDistortAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlo
 	curSampleRate = sampleRate;
     numSamples = samplesPerBlock;
     
-    
+    envelopeGenerator.get()->prepareToPlay(sampleRate);
     phase = 0.0;
     phaseIncrement = 0.1;
 }
@@ -215,17 +218,15 @@ double getSquare(double phase, double skew)
 }
 
 
-double getPhaseSkewedForSteps(double phase, double skew, int numSteps)
+inline double getPhaseSkewedForSteps(double phase, double skew, int numSteps)
 {
     double warpedPhase;
     double fract = 1.0 / (double) numSteps;
     
     int step = (int)(phase / fract);
+      
     
-    
-    
-    
-    if (step % 2 == 0)
+    if (step % 2 == 1)
         warpedPhase = getPhaseSkewed(phase * numSteps, 1.0 - skew) * fract;
     else
         warpedPhase = getPhaseSkewed(phase * numSteps, skew ) * fract;
@@ -242,11 +243,11 @@ double getFancySquare(double phase, double skew)
     int numSteps = 4;
     warpedPhase = getPhaseSkewedForSteps(phase, skew, numSteps);
     
-    return cosLUT(warpedPhase * two_Pi);
+    return sinLUT(warpedPhase * two_Pi);
 }
 
 
-double getModulatorTriangle(double phase, double skew)
+inline double getModulatorTriangle(double phase, double skew)
 {
 	double val;
 	double curPhase = phase - (int)phase;
@@ -293,7 +294,15 @@ void PDistortAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffe
     
     for (int i = 0; i < numSamples ; i++)
     {
-		
+        int on = (int)*parameters.getRawParameterValue("trigger");
+        envelopeGenerator.get()->gate(on);
+        
+        double egVal = envelopeGenerator.get()->process();
+        double egValInverted = 1.0 - envelopeGenerator.get()->process();
+        egValInverted *= 0.5;
+        
+        double modAmount = egValInverted;
+        
         switch (type) 
 		{
             case SINE: {
@@ -302,16 +311,18 @@ void PDistortAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffe
                 break;
             }
             case SAW: {
-				currentSample = getSaw(phase, *phaseBendParameterValue);
+				currentSample = getSaw(phase, modAmount);
                 break;
             }
 			
             case SQUARE: {
-				currentSample = getSquare(phase, *phaseBendParameterValue);
+				currentSample = getSquare(phase, modAmount);
                 break;
             }
             case FANCY_SQUARE: {
-                currentSample = getFancySquare(phase, *phaseBendParameterValue);
+                double pw = *phaseBendParameterValue;
+                double warpedPhase = getPhaseSkewed(phase, pw);
+                currentSample = getFancySquare(warpedPhase, modAmount);
                 break;
             }
             default:
@@ -319,7 +330,7 @@ void PDistortAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffe
                 
         }
         
-		currentSample *= *gainParameterValue;
+		currentSample *= *gainParameterValue * egVal;
 		
         for (int channel = 0; channel < totalNumOutputChannels; ++channel)
         {
@@ -334,6 +345,8 @@ void PDistortAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffe
         while (phase >= 1.0)
             phase -= 1.0;
     }
+    
+    
     
     
 }

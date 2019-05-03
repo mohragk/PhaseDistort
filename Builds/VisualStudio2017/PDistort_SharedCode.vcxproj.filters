@@ -2,6 +2,9 @@
 
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
+    <Filter Include="PDistort\ADSR">
+      <UniqueIdentifier>{DB08A8B5-6BE7-4AE8-2ACF-D80E41C93203}</UniqueIdentifier>
+    </Filter>
     <Filter Include="PDistort\Source">
       <UniqueIdentifier>{F0CCE04C-6833-248D-D573-9BEBE036AAF4}</UniqueIdentifier>
     </Filter>
@@ -466,6 +469,9 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\Source\ADSR\ADSR.cpp">
+      <Filter>PDistort\ADSR</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Source\PluginProcessor.cpp">
       <Filter>PDistort\Source</Filter>
     </ClCompile>
@@ -2532,6 +2538,9 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Source\ADSR\ADSR.h">
+      <Filter>PDistort\ADSR</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\Source\PluginProcessor.h">
       <Filter>PDistort\Source</Filter>
     </ClInclude>

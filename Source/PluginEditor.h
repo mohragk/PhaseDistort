@@ -16,7 +16,7 @@
 //==============================================================================
 /**
 */
-class PDistortAudioProcessorEditor  : public AudioProcessorEditor
+class PDistortAudioProcessorEditor  : public AudioProcessorEditor, public Timer
 {
 public:
     PDistortAudioProcessorEditor (PDistortAudioProcessor&, AudioProcessorValueTreeState&);
@@ -25,6 +25,9 @@ public:
     //==============================================================================
     void paint (Graphics&) override;
     void resized() override;
+    
+    
+    void timerCallback() override;
 
 private:
     PDistortAudioProcessor& processor;
@@ -41,6 +44,9 @@ private:
     
     Slider phaseTypeSlider;
     std::unique_ptr<SliderAttachment> phaseTypeAttachment;
+    
+    TextButton triggerButton;
+    std::unique_ptr<ButtonAttachment> triggerAttachment;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PDistortAudioProcessorEditor)
 };

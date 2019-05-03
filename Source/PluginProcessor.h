@@ -11,6 +11,7 @@
 #pragma once
 
 #include "../JuceLibraryCode/JuceHeader.h"
+#include "ADSR/ADSR.h"
 
 //==============================================================================
 /**
@@ -59,7 +60,9 @@ public:
 
 	float* gainParameterValue;
 	float* phaseBendParameterValue;
+    
 
+	std::unique_ptr<EnvelopeGenerator> envelopeGenerator;
     
     
 private:
