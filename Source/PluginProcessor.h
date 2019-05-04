@@ -14,10 +14,15 @@
 #include "ADSR/ADSR.h"
 
 #define two_Pi (2.0 * double_Pi)
+#define KEYBOARD_NOTES_COUNT 9
 
 struct oscillator_data {
     double phase;
     double phaseInc;
+};
+
+struct playing_notes {
+    bool noteDown[KEYBOARD_NOTES_COUNT];
 };
 
 //==============================================================================
@@ -89,6 +94,8 @@ public:
         return val;
         
     }
+    
+    playing_notes playingNotes = {};
     
     
 private:

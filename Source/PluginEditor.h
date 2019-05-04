@@ -19,7 +19,7 @@
 class PDistortAudioProcessorEditor  : public AudioProcessorEditor
 {
 public:
-    PDistortAudioProcessorEditor (PDistortAudioProcessor&, AudioProcessorValueTreeState&);
+    PDistortAudioProcessorEditor (PDistortAudioProcessor&, AudioProcessorValueTreeState&, playing_notes&);
     ~PDistortAudioProcessorEditor();
 
     //==============================================================================
@@ -34,6 +34,7 @@ public:
 private:
     PDistortAudioProcessor& processor;
 	AudioProcessorValueTreeState& valueTreeState;
+    playing_notes& playingNotes;
 
 	typedef AudioProcessorValueTreeState::SliderAttachment SliderAttachment;
 	typedef AudioProcessorValueTreeState::ButtonAttachment ButtonAttachment;
@@ -49,6 +50,8 @@ private:
     
     TextButton triggerButton;
     std::unique_ptr<ButtonAttachment> triggerAttachment;
+    
+    TextButton keyTriggerButtons[KEYBOARD_NOTES_COUNT];
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PDistortAudioProcessorEditor)
 };

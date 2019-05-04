@@ -304,6 +304,20 @@ void PDistortAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffe
     type = (WaveformType) int_type;
     
     
+    int currentMidiNote = 46;
+    bool gateOn = false;
+    
+    // CHECK KEYBOARD NOTES
+    for(int i = 0; i < KEYBOARD_NOTES_COUNT; i++)
+    {
+        if (playingNotes.noteDown[i])
+        {
+            currentMidiNote += i;
+            double freq = MidiMessage::getMidiNoteInHertz(currentMidiNote);
+            oscData.phaseInc = getPhaseIncrement(freq);
+            gateOn = true;
+        }
+    }
    
     
     
@@ -312,7 +326,7 @@ void PDistortAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffe
         double currentSample = 0.0;
         double currentPhase = oscData.phase;
         
-        int on = (int)*parameters.getRawParameterValue("trigger");
+        int on =  gateOn;
         envelopeGenerator.get()->gate(on);
         envelopeGeneratorVol.get()->gate(on);
         
@@ -386,7 +400,7 @@ bool PDistortAudioProcessor::hasEditor() const
 
 AudioProcessorEditor* PDistortAudioProcessor::createEditor()
 {
-    return new PDistortAudioProcessorEditor (*this, parameters);
+    return new PDistortAudioProcessorEditor (*this, parameters, playingNotes );
 }
 
 //==============================================================================
