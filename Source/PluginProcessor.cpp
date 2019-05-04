@@ -19,7 +19,7 @@ enum WaveformType {
     numTypes
 };
 
-#define two_Pi (2.0 * double_Pi)
+
 
 //==============================================================================
 PDistortAudioProcessor::PDistortAudioProcessor()
@@ -47,6 +47,9 @@ PDistortAudioProcessor::PDistortAudioProcessor()
 	phaseBendParameterValue = parameters.getRawParameterValue("phaseBend");
 	
 	envelopeGenerator.reset( new EnvelopeGenerator() );
+    
+    envelopeGeneratorVol.reset( new EnvelopeGenerator() );
+    
 
 }
 
@@ -122,9 +125,17 @@ void PDistortAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlo
 	curSampleRate = sampleRate;
     numSamples = samplesPerBlock;
     
+    lfoData.phase = 0.0;
+    lfoData.phaseInc = getPhaseIncrement(1.5);
+    
+    oscData.phase = 0.0;
+    oscData.phaseInc = getPhaseIncrement(110.0);
+    
     envelopeGenerator.get()->prepareToPlay(sampleRate);
-    phase = 0.0;
-    phaseIncrement = 0.1;
+    envelopeGenerator.get()->setSustainLevel(0.3);
+    envelopeGenerator.get()->setDecayRate(12.5);
+    
+    envelopeGeneratorVol.get()->prepareToPlay(sampleRate);
 }
 
 void PDistortAudioProcessor::releaseResources()
@@ -284,21 +295,29 @@ void PDistortAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffe
         buffer.clear (i, 0, buffer.getNumSamples());
 
     
-    int numSamples = buffer.getNumSamples();    
+    int numSamples = buffer.getNumSamples();
+    
+    
     
     WaveformType type = SINE;
 	int int_type = (int)*parameters.getRawParameterValue("type");
     type = (WaveformType) int_type;
-    double currentSample = 0.0;
+    
+    
+   
     
     
     for (int i = 0; i < numSamples ; i++)
     {
+        double currentSample = 0.0;
+        double currentPhase = oscData.phase;
+        
         int on = (int)*parameters.getRawParameterValue("trigger");
         envelopeGenerator.get()->gate(on);
+        envelopeGeneratorVol.get()->gate(on);
         
         double egVal = envelopeGenerator.get()->process();
-        double egValInverted = 1.0 - envelopeGenerator.get()->process();
+        double egValInverted = 1.0 - egVal;
         egValInverted *= 0.5;
         
         double modAmount = egValInverted;
@@ -306,22 +325,22 @@ void PDistortAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffe
         switch (type) 
 		{
             case SINE: {
-				currentSample = sinLUT(phase * two_Pi);
+				currentSample = sinLUT(currentPhase * two_Pi);
                 
                 break;
             }
             case SAW: {
-				currentSample = getSaw(phase, modAmount);
+				currentSample = getSaw(currentPhase, modAmount);
                 break;
             }
 			
             case SQUARE: {
-				currentSample = getSquare(phase, modAmount);
+				currentSample = getSquare(currentPhase, modAmount);
                 break;
             }
             case FANCY_SQUARE: {
-                double pw = *phaseBendParameterValue;
-                double warpedPhase = getPhaseSkewed(phase, pw);
+                double pw = (*phaseBendParameterValue * getLFO(&lfoData) + 1.0) * 0.5;
+                double warpedPhase = getPhaseSkewed(currentPhase, pw);
                 currentSample = getFancySquare(warpedPhase, modAmount);
                 break;
             }
@@ -329,8 +348,8 @@ void PDistortAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffe
                 break;
                 
         }
-        
-		currentSample *= *gainParameterValue * egVal;
+        double egValVolume = envelopeGeneratorVol.get()->process();
+        currentSample *= *gainParameterValue * egValVolume;
 		
         for (int channel = 0; channel < totalNumOutputChannels; ++channel)
         {
@@ -340,10 +359,10 @@ void PDistortAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffe
             channelData[i] = currentSample;
         }
         
-        phase += getPhaseIncrement(110.0); // 110 hz
+        oscData.phase += oscData.phaseInc;
         
-        while (phase >= 1.0)
-            phase -= 1.0;
+        while (oscData.phase >= 1.0)
+            oscData.phase -= 1.0;
     }
     
     

@@ -16,7 +16,7 @@
 //==============================================================================
 /**
 */
-class PDistortAudioProcessorEditor  : public AudioProcessorEditor, public Timer
+class PDistortAudioProcessorEditor  : public AudioProcessorEditor
 {
 public:
     PDistortAudioProcessorEditor (PDistortAudioProcessor&, AudioProcessorValueTreeState&);
@@ -26,8 +26,10 @@ public:
     void paint (Graphics&) override;
     void resized() override;
     
+    void handleButtonStateChange();
     
-    void timerCallback() override;
+    bool keyStateChanged(bool isKeyDown) override;
+    
 
 private:
     PDistortAudioProcessor& processor;

@@ -17,6 +17,7 @@ PDistortAudioProcessorEditor::PDistortAudioProcessorEditor (PDistortAudioProcess
 {
 	addAndMakeVisible(gainSlider);
 	gainAttachment.reset(new SliderAttachment(valueTreeState, "gain", gainSlider));
+    
 
 	addAndMakeVisible(phaseBendSlider);
 	phaseBendAttachment.reset(new SliderAttachment(valueTreeState, "phaseBend", phaseBendSlider));
@@ -27,7 +28,8 @@ PDistortAudioProcessorEditor::PDistortAudioProcessorEditor (PDistortAudioProcess
     addAndMakeVisible(triggerButton);
     triggerAttachment.reset(new ButtonAttachment(valueTreeState, "trigger", triggerButton));
     triggerButton.setButtonText("TRIGGER");
-    //triggerButton.setTriggeredOnMouseDown(true);
+    triggerButton.setTriggeredOnMouseDown(true);
+    triggerButton.onStateChange = [this]() { handleButtonStateChange(); };
     //triggerButton.setClickingTogglesState(true);
     
     
@@ -36,12 +38,10 @@ PDistortAudioProcessorEditor::PDistortAudioProcessorEditor (PDistortAudioProcess
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
     setSize (400, 300);
-    startTimerHz(60);
 }
 
 PDistortAudioProcessorEditor::~PDistortAudioProcessorEditor()
 {
-    stopTimer();
 }
 
 //==============================================================================
@@ -53,16 +53,38 @@ void PDistortAudioProcessorEditor::paint (Graphics& g)
   
 }
 
-void PDistortAudioProcessorEditor::timerCallback()
+void PDistortAudioProcessorEditor::handleButtonStateChange()
 {
     Button::ButtonState state = triggerButton.getState();
     
-    if(state == 2)
+    if(state == Button::ButtonState::buttonDown)
         triggerButton.setToggleState(true, sendNotificationSync);
     else
         triggerButton.setToggleState(false, sendNotificationSync);
-    
 }
+
+
+bool PDistortAudioProcessorEditor::keyStateChanged(bool isKeyDown)
+{
+    if (isKeyDown)
+    {
+        if(KeyPress::isKeyCurrentlyDown(KeyPress::spaceKey))
+        {
+            Button::ButtonState bDown = Button::ButtonState::buttonDown;
+            triggerButton.setState(bDown);
+        }
+        
+    }
+    else
+    {
+        Button::ButtonState bDown = Button::ButtonState::buttonNormal;
+        triggerButton.setState(bDown);
+    }
+    
+    
+    return true;
+}
+
 
 void PDistortAudioProcessorEditor::resized()
 {

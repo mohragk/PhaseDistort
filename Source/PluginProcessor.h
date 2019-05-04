@@ -13,6 +13,13 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "ADSR/ADSR.h"
 
+#define two_Pi (2.0 * double_Pi)
+
+struct oscillator_data {
+    double phase;
+    double phaseInc;
+};
+
 //==============================================================================
 /**
 */
@@ -62,7 +69,26 @@ public:
 	float* phaseBendParameterValue;
     
 
-	std::unique_ptr<EnvelopeGenerator> envelopeGenerator;
+	std::unique_ptr<EnvelopeGenerator> envelopeGenerator, envelopeGeneratorVol;
+    
+    oscillator_data lfoData, oscData;
+    
+    double getLFO(oscillator_data* data)
+    {
+        double val = 0.0;
+        if (data != nullptr)
+        {
+            
+            val = sin(data->phase * two_Pi);
+            
+            data->phase += data->phaseInc;
+            while (data->phase > 1.0)
+                data->phase -= 1.0;
+        }
+        
+        return val;
+        
+    }
     
     
 private:
@@ -71,7 +97,6 @@ private:
     double curSampleRate;
     int numSamples;
     
-    double phase, phaseIncrement;
     double currentFrequency;
     double distortAmount;
 
