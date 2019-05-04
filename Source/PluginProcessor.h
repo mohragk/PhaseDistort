@@ -15,14 +15,34 @@
 
 #define two_Pi (2.0 * double_Pi)
 #define KEYBOARD_NOTES_COUNT 9
+#define NUM_VOICES 5
+
+enum WaveformType {
+    SINE,
+    SAW,
+    SQUARE,
+    FANCY_SQUARE,
+    numTypes
+};
 
 struct oscillator_data {
     double phase;
     double phaseInc;
+    
+    WaveformType type;
 };
 
 struct playing_notes {
     bool noteDown[KEYBOARD_NOTES_COUNT];
+};
+
+
+struct voice {
+    oscillator_data osc;
+    EnvelopeGenerator* eg[2];
+    
+    
+    bool gateOn;
 };
 
 //==============================================================================
@@ -44,6 +64,7 @@ public:
    #endif
 
     void processBlock (AudioBuffer<float>&, MidiBuffer&) override;
+    double getSample(voice* currentVoice, AudioProcessorValueTreeState* parameters);
 
     //==============================================================================
     AudioProcessorEditor* createEditor() override;
@@ -70,25 +91,26 @@ public:
     
     double getPhaseIncrement(double frequency);
 
-	float* gainParameterValue;
-	float* phaseBendParameterValue;
+	
     
 
 	std::unique_ptr<EnvelopeGenerator> envelopeGenerator, envelopeGeneratorVol;
     
-    oscillator_data lfoData, oscData;
+    oscillator_data lfoData;
     
-    double getLFO(oscillator_data* data)
+    voice synthVoices[NUM_VOICES] = {};
+    
+    double getLFO(oscillator_data* osc)
     {
         double val = 0.0;
-        if (data != nullptr)
+        if (osc != nullptr)
         {
             
-            val = sin(data->phase * two_Pi);
+            val = sin(osc->phase * two_Pi);
             
-            data->phase += data->phaseInc;
-            while (data->phase > 1.0)
-                data->phase -= 1.0;
+            osc->phase += osc->phaseInc;
+            while (osc->phase > 1.0)
+                osc->phase -= 1.0;
         }
         
         return val;

@@ -48,8 +48,10 @@ private:
     Slider phaseTypeSlider;
     std::unique_ptr<SliderAttachment> phaseTypeAttachment;
     
-    TextButton triggerButton;
-    std::unique_ptr<ButtonAttachment> triggerAttachment;
+    Slider pulseWidthSlider;
+    std::unique_ptr<SliderAttachment> pulseWidthAttachment;
+    
+    
     
     TextButton keyTriggerButtons[KEYBOARD_NOTES_COUNT];
 

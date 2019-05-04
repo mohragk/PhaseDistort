@@ -11,13 +11,7 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
-enum WaveformType {
-    SINE,
-    SAW,
-	SQUARE,
-    FANCY_SQUARE,
-    numTypes
-};
+
 
 
 
@@ -36,19 +30,24 @@ PDistortAudioProcessor::PDistortAudioProcessor()
 		{
 			std::make_unique<AudioParameterFloat> ("gain", "Gain", 0.0, 1.0, 0.15),
 			std::make_unique<AudioParameterFloat>("phaseBend", "Phase Bend", 0.0, 1.0, 0.5),
+            std::make_unique<AudioParameterFloat>("pulseWidth", "Pulse Width", 0.0, 1.0, 0.5),
             std::make_unique<AudioParameterInt>("type", "Distortion Type", 0, numTypes, 0),
-            std::make_unique<AudioParameterBool>("trigger", "Trigger EG", false)
 		}
 	)
 
 #endif
 {
-	gainParameterValue = parameters.getRawParameterValue("gain");
-	phaseBendParameterValue = parameters.getRawParameterValue("phaseBend");
 	
 	envelopeGenerator.reset( new EnvelopeGenerator() );
-    
     envelopeGeneratorVol.reset( new EnvelopeGenerator() );
+    
+    
+    // set correct EG for voices
+    for(int i = 0; i < NUM_VOICES ; i++)
+    {
+        synthVoices[i].eg[0] = envelopeGenerator.get();
+        synthVoices[i].eg[1] = envelopeGeneratorVol.get();
+    }
     
 
 }
@@ -128,14 +127,19 @@ void PDistortAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlo
     lfoData.phase = 0.0;
     lfoData.phaseInc = getPhaseIncrement(1.5);
     
-    oscData.phase = 0.0;
-    oscData.phaseInc = getPhaseIncrement(110.0);
+    
+    for (int i = 0; i < NUM_VOICES; i++)
+    {
+        synthVoices[i].osc.phase = 0.0;
+        synthVoices[i].osc.phaseInc = getPhaseIncrement(110.0);
+    }
     
     envelopeGenerator.get()->prepareToPlay(sampleRate);
     envelopeGenerator.get()->setSustainLevel(0.3);
     envelopeGenerator.get()->setDecayRate(12.5);
     
     envelopeGeneratorVol.get()->prepareToPlay(sampleRate);
+    
 }
 
 void PDistortAudioProcessor::releaseResources()
@@ -298,92 +302,130 @@ void PDistortAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffe
     int numSamples = buffer.getNumSamples();
     
     
-    
-    WaveformType type = SINE;
-	int int_type = (int)*parameters.getRawParameterValue("type");
-    type = (WaveformType) int_type;
-    
-    
-    int currentMidiNote = 46;
-    bool gateOn = false;
-    
-    // CHECK KEYBOARD NOTES
-    for(int i = 0; i < KEYBOARD_NOTES_COUNT; i++)
+    // set the oscillator type
+    for(int i = 0; i < NUM_VOICES; i++)
     {
-        if (playingNotes.noteDown[i])
-        {
-            currentMidiNote += i;
-            double freq = MidiMessage::getMidiNoteInHertz(currentMidiNote);
-            oscData.phaseInc = getPhaseIncrement(freq);
-            gateOn = true;
-        }
+        WaveformType type = SINE;
+        int int_type = (int)*parameters.getRawParameterValue("type");
+        type = (WaveformType) int_type;
+        synthVoices[i].osc.type = type;
     }
-   
+    
     
     
     for (int i = 0; i < numSamples ; i++)
     {
-        double currentSample = 0.0;
-        double currentPhase = oscData.phase;
+        int on = false;
         
-        int on =  gateOn;
+        // CHECK KEYBOARD NOTES
+        for(int i = 0; i < KEYBOARD_NOTES_COUNT; i++)
+        {
+            if (playingNotes.noteDown[i])
+            {
+                int baseNote = 42;
+                int currentMidiNote = i + baseNote;
+                for (int v = 0; v < NUM_VOICES; v++)
+                {
+                    double freq = MidiMessage::getMidiNoteInHertz(currentMidiNote);
+                    synthVoices[v].osc.phaseInc = getPhaseIncrement(freq + v);
+                    on = true;
+                }
+                
+                break; //biased towards lowest keys, but we don't care
+            }
+            else
+            {
+                on = false;
+            }
+        }
+        
+        
         envelopeGenerator.get()->gate(on);
         envelopeGeneratorVol.get()->gate(on);
         
-        double egVal = envelopeGenerator.get()->process();
-        double egValInverted = 1.0 - egVal;
-        egValInverted *= 0.5;
+        envelopeGenerator.get()->process();
+        envelopeGeneratorVol.get()->process();
         
-        double modAmount = egValInverted;
+        double currentSample[2] = {0.0, 0.0};
         
-        switch (type) 
-		{
-            case SINE: {
-				currentSample = sinLUT(currentPhase * two_Pi);
-                
-                break;
-            }
-            case SAW: {
-				currentSample = getSaw(currentPhase, modAmount);
-                break;
-            }
-			
-            case SQUARE: {
-				currentSample = getSquare(currentPhase, modAmount);
-                break;
-            }
-            case FANCY_SQUARE: {
-                double pw = (*phaseBendParameterValue * getLFO(&lfoData) + 1.0) * 0.5;
-                double warpedPhase = getPhaseSkewed(currentPhase, pw);
-                currentSample = getFancySquare(warpedPhase, modAmount);
-                break;
-            }
-            default:
-                break;
-                
+        
+        for(int voi = 0; voi < NUM_VOICES; voi++)
+        {
+            double s = getSample(&synthVoices[voi], &parameters) * (2.0 / NUM_VOICES);
+            
+            if (voi % 2 == 0)
+                currentSample[0] += s;
+            else
+                currentSample[1] += s;
         }
-        double egValVolume = envelopeGeneratorVol.get()->process();
-        currentSample *= *gainParameterValue * egValVolume;
-		
+        
         for (int channel = 0; channel < totalNumOutputChannels; ++channel)
         {
-           
             auto* channelData = buffer.getWritePointer (channel);
-
-            channelData[i] = currentSample;
+            channelData[i] = currentSample[channel];
         }
         
-        oscData.phase += oscData.phaseInc;
-        
-        while (oscData.phase >= 1.0)
-            oscData.phase -= 1.0;
+       
     }
-    
-    
-    
-    
+ 
 }
 
+
+double PDistortAudioProcessor::getSample(voice* currentVoice, AudioProcessorValueTreeState* parameters)
+{
+    double currentSample = 0.0;
+    double currentPhase = currentVoice->osc.phase;
+    
+    float* phaseBend = parameters->getRawParameterValue("phaseBend");
+    float* pulseWidth = parameters->getRawParameterValue("pulseWidth");
+    float* gain = parameters->getRawParameterValue("gain");
+    
+    
+    // PROCESS EG SEPERATELY
+    
+    double egVal = currentVoice->eg[0]->getOutput() * *phaseBend;
+    double egValInverted = 1.0 - egVal;
+    egValInverted *= 0.5;
+    
+    double modAmount = egValInverted;
+    
+    WaveformType currentType = currentVoice->osc.type;
+    switch (currentType)
+    {
+        case SINE: {
+            currentSample = sinLUT(currentPhase * two_Pi);
+            
+            break;
+        }
+        case SAW: {
+            currentSample = getSaw(currentPhase, modAmount);
+            break;
+        }
+            
+        case SQUARE: {
+            currentSample = getSquare(currentPhase, modAmount);
+            break;
+        }
+        case FANCY_SQUARE: {
+            double pw = (*pulseWidth + 1.0) * 0.5;
+            double warpedPhase = getPhaseSkewed(currentPhase, pw);
+            currentSample = getFancySquare(warpedPhase, modAmount);
+            break;
+        }
+        default:
+            break;
+            
+    }
+    double egValVolume = currentVoice->eg[1]->getOutput();
+    currentSample *= *gain * egValVolume;
+    
+    currentVoice->osc.phase += currentVoice->osc.phaseInc;
+    
+    while (currentVoice->osc.phase >= 1.0)
+        currentVoice->osc.phase -= 1.0;
+    
+    return currentSample;
+}
 
 double PDistortAudioProcessor::getPhaseIncrement(double frequency) 
 {

@@ -25,12 +25,11 @@ PDistortAudioProcessorEditor::PDistortAudioProcessorEditor (PDistortAudioProcess
     addAndMakeVisible(phaseTypeSlider);
     phaseTypeAttachment.reset(new SliderAttachment(valueTreeState, "type", phaseTypeSlider));
     
-    addAndMakeVisible(triggerButton);
-    triggerAttachment.reset(new ButtonAttachment(valueTreeState, "trigger", triggerButton));
-    triggerButton.setButtonText("TRIGGER");
-    triggerButton.setTriggeredOnMouseDown(true);
-    triggerButton.onStateChange = [this]() { handleButtonStateChange(); };
-    //triggerButton.setClickingTogglesState(true);
+    
+    addAndMakeVisible(pulseWidthSlider);
+    pulseWidthAttachment.reset(new SliderAttachment(valueTreeState, "pulseWidth", pulseWidthSlider));
+    
+   
     
     for (int i =0; i < KEYBOARD_NOTES_COUNT; i++)
     {
@@ -62,13 +61,6 @@ void PDistortAudioProcessorEditor::paint (Graphics& g)
 
 void PDistortAudioProcessorEditor::handleButtonStateChange()
 {
-    Button::ButtonState state = triggerButton.getState();
-    
-    if(state == Button::ButtonState::buttonDown)
-        triggerButton.setToggleState(true, sendNotificationSync);
-    else
-        triggerButton.setToggleState(false, sendNotificationSync);
-    
     
     for (int i = 0 ; i < KEYBOARD_NOTES_COUNT; i++)
     {
@@ -88,11 +80,7 @@ bool PDistortAudioProcessorEditor::keyStateChanged(bool isKeyDown)
 {
     if (isKeyDown)
     {
-        if(KeyPress::isKeyCurrentlyDown(KeyPress::spaceKey))
-        {
-            Button::ButtonState bDown = Button::ButtonState::buttonDown;
-            triggerButton.setState(bDown);
-        }
+        
         
         if(KeyPress::isKeyCurrentlyDown('a'))
         {
@@ -146,7 +134,6 @@ bool PDistortAudioProcessorEditor::keyStateChanged(bool isKeyDown)
     else
     {
         Button::ButtonState bNorm = Button::ButtonState::buttonNormal;
-        triggerButton.setState(bNorm);
         
         if(!KeyPress::isKeyCurrentlyDown('a')) { keyTriggerButtons[0].setState(bNorm); }
         if(!KeyPress::isKeyCurrentlyDown('s')) { keyTriggerButtons[1].setState(bNorm); }
@@ -171,8 +158,9 @@ void PDistortAudioProcessorEditor::resized()
 	Rectangle<int> layout (getLocalBounds());
 	gainSlider.setBounds(layout.removeFromTop(height));
 	phaseBendSlider.setBounds(layout.removeFromTop(height));
+    pulseWidthSlider.setBounds(layout.removeFromTop(height));
     phaseTypeSlider.setBounds(layout.removeFromTop(height));
-    triggerButton.setBounds(layout.removeFromTop(height));
+   
     
     Rectangle<int> keyLayout (layout);
     int w = getWidth() / KEYBOARD_NOTES_COUNT;
