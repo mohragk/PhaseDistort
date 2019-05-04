@@ -39,20 +39,27 @@ private:
 	typedef AudioProcessorValueTreeState::SliderAttachment SliderAttachment;
 	typedef AudioProcessorValueTreeState::ButtonAttachment ButtonAttachment;
 
+    Label gainLabel;
 	Slider gainSlider;
 	std::unique_ptr<SliderAttachment> gainAttachment;
 
+    Label phaseBendLabel;
 	Slider phaseBendSlider;
 	std::unique_ptr<SliderAttachment> phaseBendAttachment;
     
+    Label phaseTypeLabel;
     Slider phaseTypeSlider;
     std::unique_ptr<SliderAttachment> phaseTypeAttachment;
     
+    Label pulseWidthLabel;
+    Slider pulseWidthSlider;
+    std::unique_ptr<SliderAttachment> pulseWidthAttachment;
+    
+    Label numVoicesLabel;
     Slider numVoicesSlider;
     std::unique_ptr<SliderAttachment> numVoicesAttachment;
     
-    Slider pulseWidthSlider;
-    std::unique_ptr<SliderAttachment> pulseWidthAttachment;
+   
     
     
     

@@ -15,22 +15,45 @@
 PDistortAudioProcessorEditor::PDistortAudioProcessorEditor (PDistortAudioProcessor& p, AudioProcessorValueTreeState& vst, playing_notes& notes)
     : AudioProcessorEditor (&p), processor (p), valueTreeState(vst), playingNotes(notes)
 {
+    
+    
 	addAndMakeVisible(gainSlider);
 	gainAttachment.reset(new SliderAttachment(valueTreeState, "gain", gainSlider));
+    addAndMakeVisible(gainLabel);
+    gainLabel.setText("GAIN", dontSendNotification);
+    gainLabel.attachToComponent(&gainSlider, true);
+    
+    
+    addAndMakeVisible(phaseTypeSlider);
+    phaseTypeAttachment.reset(new SliderAttachment(valueTreeState, "type", phaseTypeSlider));
+    addAndMakeVisible(phaseTypeLabel);
+    phaseTypeLabel.setText("OSC TYPE", dontSendNotification);
+    phaseTypeLabel.attachToComponent(&phaseTypeSlider, true);
     
 
 	addAndMakeVisible(phaseBendSlider);
 	phaseBendAttachment.reset(new SliderAttachment(valueTreeState, "phaseBend", phaseBendSlider));
+    addAndMakeVisible(phaseBendLabel);
+    phaseBendLabel.setText("CUTOFF", dontSendNotification);
+    phaseBendLabel.attachToComponent(&phaseBendSlider, true);
     
-    addAndMakeVisible(phaseTypeSlider);
-    phaseTypeAttachment.reset(new SliderAttachment(valueTreeState, "type", phaseTypeSlider));
-    
-    addAndMakeVisible(numVoicesSlider);
-    numVoicesAttachment.reset(new SliderAttachment(valueTreeState, "numVoices", numVoicesSlider));
     
     
     addAndMakeVisible(pulseWidthSlider);
     pulseWidthAttachment.reset(new SliderAttachment(valueTreeState, "pulseWidth", pulseWidthSlider));
+    addAndMakeVisible(pulseWidthLabel);
+    pulseWidthLabel.setText("PW (type 3)", dontSendNotification);
+    pulseWidthLabel.attachToComponent(&pulseWidthSlider, true);
+    
+   
+    addAndMakeVisible(numVoicesSlider);
+    numVoicesAttachment.reset(new SliderAttachment(valueTreeState, "numVoices", numVoicesSlider));
+    addAndMakeVisible(numVoicesLabel);
+    numVoicesLabel.setText("NUM VOICES", dontSendNotification);
+    numVoicesLabel.attachToComponent(&numVoicesSlider, true);
+    
+    
+    
     
    
     
@@ -46,7 +69,7 @@ PDistortAudioProcessorEditor::PDistortAudioProcessorEditor (PDistortAudioProcess
 
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
-    setSize (400, 300);
+    setSize (600, 400);
 }
 
 PDistortAudioProcessorEditor::~PDistortAudioProcessorEditor()
@@ -158,13 +181,33 @@ bool PDistortAudioProcessorEditor::keyStateChanged(bool isKeyDown)
 void PDistortAudioProcessorEditor::resized()
 {
 	int height = 40;
+    int labelW = 80;
 	Rectangle<int> layout (getLocalBounds());
-	gainSlider.setBounds(layout.removeFromTop(height));
-	phaseBendSlider.setBounds(layout.removeFromTop(height));
-    pulseWidthSlider.setBounds(layout.removeFromTop(height));
-    phaseTypeSlider.setBounds(layout.removeFromTop(height));
-    numVoicesSlider.setBounds(layout.removeFromTop(height));
-   
+    {
+        Rectangle<int> sliderLayout (layout.removeFromTop(height));
+        gainSlider.setBounds(sliderLayout.removeFromRight(getWidth() - labelW));
+    }
+    
+    {
+        Rectangle<int> sliderLayout (layout.removeFromTop(height));
+        phaseTypeSlider.setBounds(sliderLayout.removeFromRight(getWidth() - labelW));
+    }
+    
+    {
+        Rectangle<int> sliderLayout (layout.removeFromTop(height));
+        phaseBendSlider.setBounds(sliderLayout.removeFromRight(getWidth() - labelW));
+    }
+	
+    {
+        Rectangle<int> sliderLayout (layout.removeFromTop(height));
+        pulseWidthSlider.setBounds(sliderLayout.removeFromRight(getWidth() - labelW));
+    }
+
+    {
+        Rectangle<int> sliderLayout (layout.removeFromTop(height));
+        numVoicesSlider.setBounds(sliderLayout.removeFromRight(getWidth() - labelW));
+    }
+    
     
     Rectangle<int> keyLayout (layout);
     int w = getWidth() / KEYBOARD_NOTES_COUNT;
