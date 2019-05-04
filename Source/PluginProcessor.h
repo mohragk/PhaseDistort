@@ -15,7 +15,7 @@
 
 #define two_Pi (2.0 * double_Pi)
 #define KEYBOARD_NOTES_COUNT 9
-#define NUM_VOICES 5
+#define MAX_VOICES 8
 
 enum WaveformType {
     SINE,
@@ -98,7 +98,8 @@ public:
     
     oscillator_data lfoData;
     
-    voice synthVoices[NUM_VOICES] = {};
+    
+    voice synthVoices[MAX_VOICES] = {};
     
     double getLFO(oscillator_data* osc)
     {

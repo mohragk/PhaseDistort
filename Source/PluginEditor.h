@@ -48,6 +48,9 @@ private:
     Slider phaseTypeSlider;
     std::unique_ptr<SliderAttachment> phaseTypeAttachment;
     
+    Slider numVoicesSlider;
+    std::unique_ptr<SliderAttachment> numVoicesAttachment;
+    
     Slider pulseWidthSlider;
     std::unique_ptr<SliderAttachment> pulseWidthAttachment;
     

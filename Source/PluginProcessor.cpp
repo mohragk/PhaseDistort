@@ -29,9 +29,10 @@ PDistortAudioProcessor::PDistortAudioProcessor()
 	parameters(*this, nullptr, Identifier("PARAMETERS"),
 		{
 			std::make_unique<AudioParameterFloat> ("gain", "Gain", 0.0, 1.0, 0.15),
-			std::make_unique<AudioParameterFloat>("phaseBend", "Phase Bend", 0.0, 1.0, 0.5),
+			std::make_unique<AudioParameterFloat>("phaseBend", "Phase Bend", 0.0, 1.0, 1.0),
             std::make_unique<AudioParameterFloat>("pulseWidth", "Pulse Width", 0.0, 1.0, 0.5),
-            std::make_unique<AudioParameterInt>("type", "Distortion Type", 0, numTypes, 0),
+            std::make_unique<AudioParameterInt>("type", "Distortion Type", 0, numTypes - 1, 1),
+            std::make_unique<AudioParameterInt>("numVoices", "Number of Voices", 1, MAX_VOICES, 1)
 		}
 	)
 
@@ -43,7 +44,7 @@ PDistortAudioProcessor::PDistortAudioProcessor()
     
     
     // set correct EG for voices
-    for(int i = 0; i < NUM_VOICES ; i++)
+    for(int i = 0; i < MAX_VOICES ; i++)
     {
         synthVoices[i].eg[0] = envelopeGenerator.get();
         synthVoices[i].eg[1] = envelopeGeneratorVol.get();
@@ -128,7 +129,7 @@ void PDistortAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlo
     lfoData.phaseInc = getPhaseIncrement(1.5);
     
     
-    for (int i = 0; i < NUM_VOICES; i++)
+    for (int i = 0; i < MAX_VOICES; i++)
     {
         synthVoices[i].osc.phase = 0.0;
         synthVoices[i].osc.phaseInc = getPhaseIncrement(110.0);
@@ -301,9 +302,11 @@ void PDistortAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffe
     
     int numSamples = buffer.getNumSamples();
     
+    int numVoices = *parameters.getRawParameterValue("numVoices");
+    
     
     // set the oscillator type
-    for(int i = 0; i < NUM_VOICES; i++)
+    for(int i = 0; i < numVoices; i++)
     {
         WaveformType type = SINE;
         int int_type = (int)*parameters.getRawParameterValue("type");
@@ -324,7 +327,7 @@ void PDistortAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffe
             {
                 int baseNote = 42;
                 int currentMidiNote = i + baseNote;
-                for (int v = 0; v < NUM_VOICES; v++)
+                for (int v = 0; v < numVoices; v++)
                 {
                     double freq = MidiMessage::getMidiNoteInHertz(currentMidiNote);
                     synthVoices[v].osc.phaseInc = getPhaseIncrement(freq + v);
@@ -348,16 +351,24 @@ void PDistortAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffe
         
         double currentSample[2] = {0.0, 0.0};
         
-        
-        for(int voi = 0; voi < NUM_VOICES; voi++)
+        for(int voi = 0; voi < numVoices; voi++)
         {
-            double s = getSample(&synthVoices[voi], &parameters) * (2.0 / NUM_VOICES);
+            double s = getSample(&synthVoices[voi], &parameters) * (1.0 / numVoices);
+            
+            if (numVoices == 1 )
+            {
+                currentSample[0] = s * 0.5;
+                currentSample[1] = s * 0.5;
+                break;
+            }
             
             if (voi % 2 == 0)
                 currentSample[0] += s;
             else
                 currentSample[1] += s;
         }
+        
+        
         
         for (int channel = 0; channel < totalNumOutputChannels; ++channel)
         {

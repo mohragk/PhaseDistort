@@ -25,6 +25,9 @@ PDistortAudioProcessorEditor::PDistortAudioProcessorEditor (PDistortAudioProcess
     addAndMakeVisible(phaseTypeSlider);
     phaseTypeAttachment.reset(new SliderAttachment(valueTreeState, "type", phaseTypeSlider));
     
+    addAndMakeVisible(numVoicesSlider);
+    numVoicesAttachment.reset(new SliderAttachment(valueTreeState, "numVoices", numVoicesSlider));
+    
     
     addAndMakeVisible(pulseWidthSlider);
     pulseWidthAttachment.reset(new SliderAttachment(valueTreeState, "pulseWidth", pulseWidthSlider));
@@ -160,6 +163,7 @@ void PDistortAudioProcessorEditor::resized()
 	phaseBendSlider.setBounds(layout.removeFromTop(height));
     pulseWidthSlider.setBounds(layout.removeFromTop(height));
     phaseTypeSlider.setBounds(layout.removeFromTop(height));
+    numVoicesSlider.setBounds(layout.removeFromTop(height));
    
     
     Rectangle<int> keyLayout (layout);
