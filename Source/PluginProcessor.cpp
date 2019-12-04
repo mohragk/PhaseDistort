@@ -11,6 +11,8 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
+#define TAU 6.28318530718
+
 
 
 
@@ -31,7 +33,7 @@ PDistortAudioProcessor::PDistortAudioProcessor()
 			std::make_unique<AudioParameterFloat> ("gain", "Gain", 0.0, 1.0, 0.15),
 			std::make_unique<AudioParameterFloat>("phaseBend", "Phase Bend", 0.0, 1.0, 1.0),
             std::make_unique<AudioParameterFloat>("pulseWidth", "Pulse Width", 0.0, 1.0, 0.5),
-            std::make_unique<AudioParameterInt>("type", "Distortion Type", 0, numTypes - 1, 1),
+            std::make_unique<AudioParameterInt>("type", "Distortion Type", 0, (int)WaveformType::numTypes - 1, 1),
             std::make_unique<AudioParameterInt>("numVoices", "Number of Voices", 1, MAX_VOICES, 1)
 		}
 	)
@@ -308,7 +310,7 @@ void PDistortAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffe
     // set the oscillator type
     for(int i = 0; i < numVoices; i++)
     {
-        WaveformType type = SINE;
+        WaveformType type = WaveformType::SINE;
         int int_type = (int)*parameters.getRawParameterValue("type");
         type = (WaveformType) int_type;
         synthVoices[i].osc.type = type;
@@ -399,25 +401,28 @@ double PDistortAudioProcessor::getSample(voice* currentVoice, AudioProcessorValu
     egValInverted *= 0.5;
     
     double modAmount = egValInverted;
-    
+
+	
+
+
     WaveformType currentType = currentVoice->osc.type;
     switch (currentType)
     {
-        case SINE: {
+		case WaveformType::SINE: {
             currentSample = sinLUT(currentPhase * two_Pi);
             
             break;
         }
-        case SAW: {
+        case WaveformType::SAW: {
             currentSample = getSaw(currentPhase, modAmount);
             break;
         }
             
-        case SQUARE: {
+        case WaveformType::SQUARE: {
             currentSample = getSquare(currentPhase, modAmount);
             break;
         }
-        case FANCY_SQUARE: {
+        case WaveformType::FANCY_SQUARE: {
             double pw = (*pulseWidth + 1.0) * 0.5;
             double warpedPhase = getPhaseSkewed(currentPhase, pw);
             currentSample = getFancySquare(warpedPhase, modAmount);

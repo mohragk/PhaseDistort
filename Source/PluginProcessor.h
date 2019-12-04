@@ -17,8 +17,8 @@
 #define KEYBOARD_NOTES_COUNT 9
 #define MAX_VOICES 8
 
-enum WaveformType {
-    SINE,
+enum class WaveformType {
+    SINE  = 0 ,
     SAW,
     SQUARE,
     FANCY_SQUARE,
