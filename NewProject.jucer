@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<JUCERPROJECT id="nHs2Dj" name="PDistort" projectType="audioplug" jucerVersion="5.4.3"
+<JUCERPROJECT id="nHs2Dj" name="PDistort" projectType="audioplug" jucerVersion="5.4.5"
               pluginCharacteristicsValue="pluginEditorRequiresKeys,pluginIsSynth,pluginWantsMidiIn"
               pluginName="Vermeer PDistort" pluginManufacturer="Vermeer inc."
               pluginDesc="PDistort" pluginManufacturerCode="VERM" pluginCode="Vpdi"
@@ -92,7 +92,7 @@
   </MODULES>
   <LIVE_SETTINGS>
     <OSX buildEnabled="1"/>
-    <WINDOWS buildEnabled="0"/>
+    <WINDOWS buildEnabled="1"/>
   </LIVE_SETTINGS>
   <JUCEOPTIONS/>
 </JUCERPROJECT>
